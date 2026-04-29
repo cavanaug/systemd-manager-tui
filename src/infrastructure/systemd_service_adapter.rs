@@ -190,6 +190,29 @@ impl ServiceRepository for SystemdServiceAdapter {
         Ok(log)
     }
     
+    fn get_service_log_reversed(&self, name: &str) -> Result<String, Box<dyn std::error::Error>> {
+        let mut cmd = std::process::Command::new("journalctl");
+
+        cmd.arg("-r")
+            .arg(format!("--unit={name}"))
+            .arg("--no-pager");
+
+        if matches!(self.connection_type, ConnectionType::Session){
+            cmd.arg("--user");
+        }
+
+        let output = cmd
+            .output()?;
+
+        let log = if output.status.success() {
+            String::from_utf8_lossy(&output.stdout).to_string()
+        } else {
+            String::from_utf8_lossy(&output.stderr).to_string()
+        };
+
+        Ok(log)
+    }
+
     fn systemctl_cat(&self, name: &str) -> Result<String, Box<dyn std::error::Error>> {
         let mut cmd = Command::new("systemctl");
 

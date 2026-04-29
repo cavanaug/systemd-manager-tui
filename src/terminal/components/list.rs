@@ -516,6 +516,9 @@ impl TableServices {
             KeyCode::Char('v') => {
                 self.sender.send(AppEvent::Action(Actions::GoLog)).unwrap();
             }
+            KeyCode::Char('V') => {
+                self.sender.send(AppEvent::Action(Actions::GoLogReversed)).unwrap();
+            }
             _ => {}
         }
     }
@@ -663,7 +666,7 @@ impl TableServices {
             )));
 
             help_text.push(Line::from(
-                "Navigate: ↑/↓ | Switch tab: ←/→ | Start: s | Stop: x | Restart: r | Enable: e | Disable: d | List all units: f | Filter: a | Mask/Unmask: m | Refresh: u | Log: v | Unit File: c | Help: ?"
+                "Navigate: ↑/↓ | Switch tab: ←/→ | Start: s | Stop: x | Restart: r | Enable: e | Disable: d | List all units: f | Filter: a | Mask/Unmask: m | Refresh: u | Log: v/V | Unit File: c | Help: ?"
             ));
         }
 

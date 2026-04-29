@@ -94,6 +94,10 @@ impl ServicesManager {
         self.repository.lock().unwrap().get_service_log(service.name())
     }
 
+    pub fn get_log_reversed(&self, service: &Service) -> Result<String, Box<dyn Error>> {
+        self.repository.lock().unwrap().get_service_log_reversed(service.name())
+    }
+
     pub fn change_repository_connection(&mut self, connection_type: ConnectionType) -> Result<(), Box<dyn Error>> {
         self.repository.lock().unwrap().change_connection(connection_type)?;
         Ok(())

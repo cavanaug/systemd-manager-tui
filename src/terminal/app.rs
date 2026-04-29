@@ -42,6 +42,7 @@ pub enum Actions {
     GoList,
     ResetList,
     GoLog,
+    GoLogReversed,
     GoDetails,
     Updatelog((String, String)),
     #[allow(dead_code)]
@@ -225,6 +226,12 @@ impl App {
                 }
                 AppEvent::Action(Actions::GoLog) => {
                     self.status = Status::Log;
+                    self.service_log.set_reversed(false);
+                    self.event_tx.send(AppEvent::Action(Actions::RefreshLog))?;
+                }
+                AppEvent::Action(Actions::GoLogReversed) => {
+                    self.status = Status::Log;
+                    self.service_log.set_reversed(true);
                     self.event_tx.send(AppEvent::Action(Actions::RefreshLog))?;
                 }
                 AppEvent::Action(Actions::GoList) => self.status = Status::List,
@@ -386,7 +393,7 @@ impl App {
             Line::from("u - Refresh service list"),
             Line::from(""),
             Line::from(vec![Span::styled("Information:", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))]),
-            Line::from("v - View service logs"),
+            Line::from("v/V - View service logs (normal/reversed)"),
             Line::from("c - View unit file details"),
             Line::from(""),
             Line::from(vec![Span::styled("Application:", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))]),
