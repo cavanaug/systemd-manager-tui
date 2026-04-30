@@ -93,6 +93,7 @@ pub struct App {
     selected_tab_index: usize,
     show_help: bool,
     full_log: bool,
+    version: String,
 }
 
 impl App {
@@ -103,7 +104,8 @@ impl App {
         filter: Filter,
         service_log: ServiceLog,
         details: ServiceDetails,
-        usecases: Rc<RefCell<ServicesManager>>
+        usecases: Rc<RefCell<ServicesManager>>,
+        version: String,
     ) -> Self {
         Self {
             running: true,
@@ -119,6 +121,7 @@ impl App {
             selected_tab_index: 0,
             show_help: false,
             full_log: false,
+            version,
         }
     }
 
@@ -373,7 +376,7 @@ impl App {
 
         let text = vec![
             Line::from(vec![Span::styled(
-                "SYSTEMD MANAGER TUI - HELP",
+                format!("SYSTEMD MANAGER TUI v{} - HELP", self.version),
                 Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
             )]),
             Line::from(""),
@@ -614,7 +617,7 @@ impl App {
         ]));
 
         let help_block = Paragraph::new(help_text)
-            .block(Block::default().title("Shortcuts").borders(Borders::ALL))
+            .block(Block::default().title(format!("Shortcuts (v{})", self.version)).borders(Borders::ALL))
             .wrap(ratatui::widgets::Wrap { trim: true });
 
         frame.render_widget(help_block, help_area);

@@ -11,6 +11,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::mpsc;
 
+use clap::Parser;
 use terminal::app::AppEvent;
 
 use terminal::components::details::ServiceDetails;
@@ -18,7 +19,13 @@ use terminal::components::filter::Filter;
 use terminal::components::list::TableServices;
 use terminal::components::log::ServiceLog;
 
+#[derive(Parser)]
+#[command(name = "systemd-manager-tui", version, about = "TUI for managing systemd services")]
+struct Cli;
+
 fn main() -> color_eyre::Result<()> {
+    let _cli = Cli::parse();
+
     color_eyre::install()?;
     let terminal = ratatui::init();
     
@@ -34,6 +41,8 @@ fn main() -> color_eyre::Result<()> {
     let service_log = ServiceLog::new(event_tx.clone(), usecase.clone());
     let details = ServiceDetails::new(event_tx.clone(), usecase.clone());
 
+    let version = env!("CARGO_PKG_VERSION").to_string();
+
     let mut app = App::new(
         event_tx,
         event_rx,
@@ -42,6 +51,7 @@ fn main() -> color_eyre::Result<()> {
         service_log,
         details,
         usecase,
+        version,
     );
     app.init();
     let result = app.run(terminal);

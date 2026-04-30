@@ -1,14 +1,11 @@
 [package]
 name = "systemd-manager-tui"
-version = "1.2.4"
+version = "1.2.4-cavanaug"
 description = "TUI for managing systemd services"
 authors = ["Matheus-git <mathiew0@gmail.com>"]
 license = "MIT"
 edition = "2024"
-exclude = [
-    "assets/*",
-    "docs/*"
-]
+exclude = ["assets/*", "docs/*"]
 readme = "README.md"
 repository = "https://github.com/matheus-git/systemd-manager-tui"
 keywords = ["ratatui", "systemd", "manager", "tui"]
@@ -28,6 +25,7 @@ color-eyre = "0.6.3"
 ratatui = "0.29"
 textwrap = "0.16.2"
 rayon = "1.11.0"
+clap = { version = "4", features = ["derive"] }
 libc = "0.2.182"
 
 [dev-dependencies]
@@ -48,5 +46,5 @@ license = "MIT"
 arch = "x86_64"
 
 assets = [
-    { source = "target/x86_64-unknown-linux-musl/release/systemd-manager-tui", dest = "/usr/bin/systemd-manager-tui", mode = "755" }
+    { source = "target/x86_64-unknown-linux-musl/release/systemd-manager-tui", dest = "/usr/bin/systemd-manager-tui", mode = "755" },
 ]
