@@ -80,7 +80,7 @@ pub struct ServiceLog {
     auto_refresh: Arc<Mutex<bool>>,
     usecase: Rc<RefCell<ServicesManager>>,
     log: String,
-    reversed: bool,
+    full_log: bool,
 }
 
 impl ServiceLog {
@@ -93,7 +93,7 @@ impl ServiceLog {
             auto_refresh: Arc::new(Mutex::new(false)),
             usecase,
             log: String::new(),
-            reversed: false,
+            full_log: false,
             visible_height: 0,
         }
     }
@@ -122,11 +122,7 @@ impl ServiceLog {
         let height = area.height.saturating_sub(2) as usize;
         self.visible_height = height as u16;
 
-        let start = if self.reversed {
-            (self.scroll as usize).min(total_lines.saturating_sub(height))
-        } else {
-            total_lines.saturating_sub(height + self.scroll as usize)
-        };
+        let start = total_lines.saturating_sub(height + self.scroll as usize);
         let end = (start + height).min(total_lines);
 
         let log_lines: Vec<ListItem> = log_lines[start..end].to_vec();
@@ -168,44 +164,16 @@ impl ServiceLog {
         }
     }
 
-    pub fn set_reversed(&mut self, value: bool) {
-        self.reversed = value;
+    pub fn set_full_log(&mut self, value: bool) {
+        self.full_log = value;
     }
 
-    fn scroll_page_forward(&mut self, visible_height: u16) {
-        let jump = page_jump(visible_height);
-        if self.reversed {
-            self.scroll = self.scroll.saturating_add(jump);
-        } else {
-            self.scroll = self.scroll.saturating_sub(jump);
-        }
+    fn scroll_up(&mut self, amount: u16) {
+        self.scroll = self.scroll.saturating_add(amount);
     }
 
-    fn scroll_page_back(&mut self, visible_height: u16) {
-        let jump = page_jump(visible_height);
-        if self.reversed {
-            self.scroll = self.scroll.saturating_sub(jump);
-        } else {
-            self.scroll = self.scroll.saturating_add(jump);
-        }
-    }
-
-    fn scroll_half_forward(&mut self, visible_height: u16) {
-        let jump = half_page(visible_height);
-        if self.reversed {
-            self.scroll = self.scroll.saturating_add(jump);
-        } else {
-            self.scroll = self.scroll.saturating_sub(jump);
-        }
-    }
-
-    fn scroll_half_back(&mut self, visible_height: u16) {
-        let jump = half_page(visible_height);
-        if self.reversed {
-            self.scroll = self.scroll.saturating_sub(jump);
-        } else {
-            self.scroll = self.scroll.saturating_add(jump);
-        }
+    fn scroll_down(&mut self, amount: u16) {
+        self.scroll = self.scroll.saturating_sub(amount);
     }
 
     pub fn on_key_event(&mut self, key: KeyEvent) {
@@ -224,58 +192,34 @@ impl ServiceLog {
                 self.sender.send(AppEvent::Action(Actions::GoDetails)).unwrap();
             }
             code if up_keys.contains(&code) => {
-                if self.reversed {
-                    self.scroll = self.scroll.saturating_sub(1);
-                } else {
-                    self.scroll = self.scroll.saturating_add(1);
-                }
+                self.scroll_up(1);
             }
             code if down_keys.contains(&code) => {
-                if self.reversed {
-                    self.scroll = self.scroll.saturating_add(1);
-                } else {
-                    self.scroll = self.scroll.saturating_sub(1);
-                }
+                self.scroll_down(1);
             }
             KeyCode::PageUp => {
-                if self.reversed {
-                    self.scroll = self.scroll.saturating_sub(page_jump(self.visible_height));
-                } else {
-                    self.scroll = self.scroll.saturating_add(page_jump(self.visible_height));
-                }
+                self.scroll_up(page_jump(self.visible_height));
             }
             KeyCode::PageDown => {
-                if self.reversed {
-                    self.scroll = self.scroll.saturating_add(page_jump(self.visible_height));
-                } else {
-                    self.scroll = self.scroll.saturating_sub(page_jump(self.visible_height));
-                }
+                self.scroll_down(page_jump(self.visible_height));
             }
             KeyCode::Char('b') => {
-                self.scroll_page_back(self.visible_height);
+                self.scroll_up(page_jump(self.visible_height));
             }
             KeyCode::Char('f') | KeyCode::Char(' ') => {
-                self.scroll_page_forward(self.visible_height);
+                self.scroll_down(page_jump(self.visible_height));
             }
             KeyCode::Char('u') => {
-                self.scroll_half_back(self.visible_height);
+                self.scroll_up(half_page(self.visible_height));
             }
             KeyCode::Char('d') => {
-                self.scroll_half_forward(self.visible_height);
+                self.scroll_down(half_page(self.visible_height));
             }
             KeyCode::Char('g') | KeyCode::Char('<') => {
-                if self.reversed {
-                    self.scroll = 0;
-                } else {
-                    self.scroll = u16::MAX;
-                }
+                self.scroll = u16::MAX;
             }
             KeyCode::Char('G') | KeyCode::Char('>') => {
-                if self.reversed {
-                    self.scroll = u16::MAX;
-                } else {
-                    self.scroll = 0;
-                }
+                self.scroll = 0;
             }
             KeyCode::Char('a') => {
                 self.toogle_auto_refresh();
@@ -315,7 +259,7 @@ impl ServiceLog {
         self.set_auto_refresh(false);
         self.scroll = 0;
         self.log = String::new();
-        self.reversed = false;
+        self.full_log = false;
     }
 
     fn exit(&mut self) {
@@ -341,8 +285,8 @@ impl ServiceLog {
 
     pub fn fetch_log_and_dispatch(&mut self, service: &Service) {
         let event_tx = self.sender.clone();
-        let result = if self.reversed {
-            self.usecase.borrow().get_log_reversed(service)
+        let result = if self.full_log {
+            self.usecase.borrow().get_log_full(service)
         } else {
             self.usecase.borrow().get_log(service)
         };

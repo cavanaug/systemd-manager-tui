@@ -42,7 +42,8 @@ pub enum Actions {
     GoList,
     ResetList,
     GoLog,
-    GoLogReversed,
+    GoLogFull,
+    GoLogRemembered,
     GoDetails,
     Updatelog((String, String)),
     #[allow(dead_code)]
@@ -91,6 +92,7 @@ pub struct App {
     event_tx: Sender<AppEvent>,
     selected_tab_index: usize,
     show_help: bool,
+    full_log: bool,
 }
 
 impl App {
@@ -116,6 +118,7 @@ impl App {
             event_tx,
             selected_tab_index: 0,
             show_help: false,
+            full_log: false,
         }
     }
 
@@ -226,12 +229,19 @@ impl App {
                 }
                 AppEvent::Action(Actions::GoLog) => {
                     self.status = Status::Log;
-                    self.service_log.set_reversed(false);
+                    self.full_log = false;
+                    self.service_log.set_full_log(false);
                     self.event_tx.send(AppEvent::Action(Actions::RefreshLog))?;
                 }
-                AppEvent::Action(Actions::GoLogReversed) => {
+                AppEvent::Action(Actions::GoLogFull) => {
                     self.status = Status::Log;
-                    self.service_log.set_reversed(true);
+                    self.full_log = true;
+                    self.service_log.set_full_log(true);
+                    self.event_tx.send(AppEvent::Action(Actions::RefreshLog))?;
+                }
+                AppEvent::Action(Actions::GoLogRemembered) => {
+                    self.status = Status::Log;
+                    self.service_log.set_full_log(self.full_log);
                     self.event_tx.send(AppEvent::Action(Actions::RefreshLog))?;
                 }
                 AppEvent::Action(Actions::GoList) => self.status = Status::List,
@@ -393,7 +403,7 @@ impl App {
             Line::from("u - Refresh service list"),
             Line::from(""),
             Line::from(vec![Span::styled("Information:", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))]),
-            Line::from("v/V - View service logs (normal/reversed)"),
+            Line::from("v/V - View service logs (recent/full)"),
             Line::from("c - View unit file details"),
             Line::from(""),
             Line::from(vec![Span::styled("Application:", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))]),

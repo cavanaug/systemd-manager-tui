@@ -10,7 +10,7 @@ pub trait ServiceRepository: Send + Sync {
     fn list_service_files(&self) -> Result<Vec<Service>, Box<dyn Error>>;
     fn get_unit(&self, name: &str) -> Result<Service, Box<dyn Error>>;
     fn get_service_log(&self, name: &str) -> Result<String, Box<dyn Error>>;
-    fn get_service_log_reversed(&self, name: &str) -> Result<String, Box<dyn Error>>;
+    fn get_service_log_full(&self, name: &str) -> Result<String, Box<dyn Error>>;
     fn start_service(&self, name: &str) -> Result<Service, Box<dyn Error>>;
     fn stop_service(&self, name: &str) -> Result<Service, Box<dyn Error>>;
     fn restart_service(&self, name: &str) -> Result<Service, Box<dyn Error>>;

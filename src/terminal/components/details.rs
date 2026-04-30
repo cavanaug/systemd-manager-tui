@@ -85,11 +85,11 @@ impl ServiceDetails {
         match key.code {
             code if right_keys.contains(&code) => {
                 self.reset();
-                self.sender.send(AppEvent::Action(Actions::GoLog)).unwrap();
+                self.sender.send(AppEvent::Action(Actions::GoLogRemembered)).unwrap();
             }
             code if left_keys.contains(&code) => {
                 self.reset();
-                self.sender.send(AppEvent::Action(Actions::GoLog)).unwrap();
+                self.sender.send(AppEvent::Action(Actions::GoLogRemembered)).unwrap();
             }
             code if up_keys.contains(&code) => {
                 self.scroll = self.scroll.saturating_sub(1);

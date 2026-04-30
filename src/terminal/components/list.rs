@@ -517,7 +517,7 @@ impl TableServices {
                 self.sender.send(AppEvent::Action(Actions::GoLog)).unwrap();
             }
             KeyCode::Char('V') => {
-                self.sender.send(AppEvent::Action(Actions::GoLogReversed)).unwrap();
+                self.sender.send(AppEvent::Action(Actions::GoLogFull)).unwrap();
             }
             _ => {}
         }

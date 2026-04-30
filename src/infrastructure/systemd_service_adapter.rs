@@ -190,11 +190,10 @@ impl ServiceRepository for SystemdServiceAdapter {
         Ok(log)
     }
     
-    fn get_service_log_reversed(&self, name: &str) -> Result<String, Box<dyn std::error::Error>> {
+    fn get_service_log_full(&self, name: &str) -> Result<String, Box<dyn std::error::Error>> {
         let mut cmd = std::process::Command::new("journalctl");
 
-        cmd.arg("-r")
-            .arg(format!("--unit={name}"))
+        cmd.arg(format!("--unit={name}"))
             .arg("--no-pager");
 
         if matches!(self.connection_type, ConnectionType::Session){
